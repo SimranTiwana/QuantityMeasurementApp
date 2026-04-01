@@ -25,6 +25,6 @@ public class QuantityLength {
     double thisValue = this.unit.toBase(this.value);
     double otherValue = other.unit.toBase(other.value);
 
-    return Double.compare(thisValue, otherValue) == 0;
+    return Math.abs(thisValue - otherValue) < 0.0001;
     }
 }

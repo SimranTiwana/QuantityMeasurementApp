@@ -21,8 +21,10 @@ public class QuantityLength {
         if (obj == null || getClass() != obj.getClass()) return false;
 
         QuantityLength other = (QuantityLength) obj;
-        double thisInFeet = this.unit.toFeet(this.value);
-        double otherInFeet = other.unit.toFeet(other.value);
-        return Double.compare(thisInFeet, otherInFeet) == 0;
+        
+    double thisValue = this.unit.toBase(this.value);
+    double otherValue = other.unit.toBase(other.value);
+
+    return Double.compare(thisValue, otherValue) == 0;
     }
 }

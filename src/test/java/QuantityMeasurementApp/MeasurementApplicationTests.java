@@ -154,5 +154,48 @@ void testInchEquality_SameReference(){
             new QuantityLength(10.0, null);
         });
     }
+
+    @Test
+    void testYardToFeet_Equality() {
+    QuantityLength q1 = new QuantityLength(1, LengthUnit.YARDS);
+    QuantityLength q2 = new QuantityLength(3, LengthUnit.FEET);
+
+    assertEquals(q1, q2);
+    }
+
+    @Test
+    void testYardToInches_Equality() {
+    QuantityLength q1 = new QuantityLength(1, LengthUnit.YARDS);
+    QuantityLength q2 = new QuantityLength(36, LengthUnit.INCH);
+
+    assertEquals(q1, q2);
+    }
+
+    @Test
+    void testCentimeterToInches_Equality() {
+    QuantityLength q1 = new QuantityLength(1, LengthUnit.CENTIMETERS);
+    QuantityLength q2 = new QuantityLength(0.393701, LengthUnit.INCH);
+
+    assertEquals(q1, q2);
+    }
+
+    @Test
+    void testCentimeterToFeet_NotEqual() {
+    QuantityLength q1 = new QuantityLength(1, LengthUnit.CENTIMETERS);
+    QuantityLength q2 = new QuantityLength(1, LengthUnit.FEET);
+
+    assertNotEquals(q1, q2);
+    }
+
+    @Test
+    void testMultiUnit_Transitive() {
+    QuantityLength yard = new QuantityLength(1, LengthUnit.YARDS);
+    QuantityLength feet = new QuantityLength(3, LengthUnit.FEET);
+    QuantityLength inch = new QuantityLength(36, LengthUnit.INCH);
+
+    assertEquals(yard, feet);
+    assertEquals(feet, inch);
+    assertEquals(yard, inch);
+}
 }
 

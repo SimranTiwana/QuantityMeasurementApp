@@ -15,6 +15,10 @@ CENTIMETERS(0.0328084); // because 1 cm = 0.0328084 feet
         return value * conversionFactor;
     }
 
+public double fromBase(double baseValue) {
+    return baseValue / conversionFactor;
+}
+
      public double getConversionFactor() {
         return conversionFactor;
     }

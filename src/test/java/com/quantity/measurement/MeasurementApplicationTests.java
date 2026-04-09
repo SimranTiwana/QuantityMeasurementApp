@@ -1,4 +1,4 @@
-package QuantityMeasurementApp;
+package com.quantity.measurement;
 
 import com.quantity.measurement.enums.LengthUnit;
 import com.quantity.measurement.model.QuantityLength;
@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class QuantityLengthTest {
+public class    MeasurementApplicationTests {
 
     // ================= UC1: EQUALITY =================
 

@@ -1,29 +1,32 @@
 package com.quantity.measurement.enums;
 
-public enum LengthUnit {
+public enum WeightUnit {
 
-    FEET(1.0),
-    INCH(1.0 / 12),
-    YARDS(3.0),
-    CENTIMETERS(1.0 / 30.48);
+    KILOGRAM(1.0),
+    GRAM(0.001),
+    POUND(0.453592);
 
-    private final double toFeetFactor;
+    private final double toKilogramFactor;
 
-    LengthUnit(double toFeetFactor) {
-        this.toFeetFactor = toFeetFactor;
+    WeightUnit(double toKilogramFactor) {
+        this.toKilogramFactor = toKilogramFactor;
+    }
+
+    public double getConversionFactor() {
+        return toKilogramFactor;
     }
 
     public double convertToBaseUnit(double value) {
         if (!Double.isFinite(value)) {
             throw new IllegalArgumentException("Invalid value");
         }
-        return value * toFeetFactor;
+        return value * toKilogramFactor;
     }
 
     public double convertFromBaseUnit(double value) {
         if (!Double.isFinite(value)) {
             throw new IllegalArgumentException("Invalid value");
         }
-        return value / toFeetFactor;
+        return value / toKilogramFactor;
     }
 }

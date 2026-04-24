@@ -30,6 +30,11 @@ public enum LengthUnit implements IMeasurable {
         return value / toFeetFactor;
     }
 
+    @Override
+    public String getUnitName() {
+       return this.name();
+    }
+
     private void validate(double value) {
         if (!Double.isFinite(value)) {
             throw new IllegalArgumentException("Invalid value");

@@ -27,6 +27,10 @@ public enum WeightUnit implements IMeasurable {
         validate(value);
         return value / toKilogramFactor;
     }
+    @Override
+    public String getUnitName() {
+        return this.name();
+    }
 
     private void validate(double value) {
         if (!Double.isFinite(value)) {

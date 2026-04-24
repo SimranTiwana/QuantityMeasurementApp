@@ -9,18 +9,19 @@ public class Quantity<U extends IMeasurable> {
     private final double value;
     private final U unit;
 
-    // Constructor
+    // ===================== CONSTRUCTOR =====================
     public Quantity(double value, U unit) {
         if (unit == null)
             throw new NullPointerException("Unit shouldn't be null");
-        if (Double.isNaN(value))
+
+        if (Double.isNaN(value) || Double.isInfinite(value))
             throw new IllegalArgumentException("Invalid value");
 
         this.value = value;
         this.unit = unit;
     }
 
-    // Getters
+    // ===================== GETTERS =====================
     public double getValue() {
         return value;
     }
@@ -29,7 +30,7 @@ public class Quantity<U extends IMeasurable> {
         return unit;
     }
 
-    // Conversion
+    // ===================== CONVERSION =====================
     public Quantity<U> toConvert(U targetUnit) {
         if (targetUnit == null)
             throw new NullPointerException("Target unit cannot be null");
@@ -40,7 +41,7 @@ public class Quantity<U extends IMeasurable> {
         return new Quantity<>(converted, targetUnit);
     }
 
-    // Add
+    // ===================== ADD =====================
     public Quantity<U> add(Quantity<U> other) {
         return add(other, this.unit);
     }
@@ -52,6 +53,9 @@ public class Quantity<U extends IMeasurable> {
         if (!this.unit.getClass().equals(other.unit.getClass()))
             throw new IllegalArgumentException("Cannot operate on different measurement categories");
 
+        if (!isValid(this.value) || !isValid(other.value))
+            throw new IllegalArgumentException("Invalid numeric values");
+
         double thisBase = this.unit.convertToBaseUnit(this.value);
         double otherBase = other.unit.convertToBaseUnit(other.value);
 
@@ -61,7 +65,56 @@ public class Quantity<U extends IMeasurable> {
         return new Quantity<>(result, targetUnit);
     }
 
-    // Equality Check
+    // ===================== SUBTRACT (UC12) =====================
+    public Quantity<U> subtract(Quantity<U> other) {
+        return subtract(other, this.unit);
+    }
+
+    public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
+        if (other == null || targetUnit == null)
+            throw new IllegalArgumentException("Null values not allowed");
+
+        if (!this.unit.getClass().equals(other.unit.getClass()))
+            throw new IllegalArgumentException("Cannot operate on different measurement categories");
+
+        if (!isValid(this.value) || !isValid(other.value))
+            throw new IllegalArgumentException("Invalid numeric values");
+
+        double thisBase = this.unit.convertToBaseUnit(this.value);
+        double otherBase = other.unit.convertToBaseUnit(other.value);
+
+        double resultBase = thisBase - otherBase;
+        double result = targetUnit.convertFromBaseUnit(resultBase);
+
+        return new Quantity<>(result, targetUnit);
+    }
+
+    // ===================== DIVIDE (UC12) =====================
+    public double divide(Quantity<U> other) {
+        if (other == null)
+            throw new IllegalArgumentException("Null value not allowed");
+
+        if (!this.unit.getClass().equals(other.unit.getClass()))
+            throw new IllegalArgumentException("Cannot operate on different measurement categories");
+
+        if (!isValid(this.value) || !isValid(other.value))
+            throw new IllegalArgumentException("Invalid numeric values");
+
+        double thisBase = this.unit.convertToBaseUnit(this.value);
+        double otherBase = other.unit.convertToBaseUnit(other.value);
+
+        if (Math.abs(otherBase) < EPSILON)
+            throw new ArithmeticException("Cannot divide by zero");
+
+        return thisBase / otherBase;
+    }
+
+    // ===================== VALIDATION =====================
+    private boolean isValid(double value) {
+        return !Double.isNaN(value) && !Double.isInfinite(value);
+    }
+
+    // ===================== EQUALITY =====================
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -75,13 +128,10 @@ public class Quantity<U extends IMeasurable> {
         if (this.unit.getClass() != other.unit.getClass())
             return false;
 
-        double thisInFeet =
-                this.unit.convertToBaseUnit(this.value);
+        double thisBase = this.unit.convertToBaseUnit(this.value);
+        double otherBase = other.unit.convertToBaseUnit(other.getValue());
 
-        double otherInFeet =
-                other.unit.convertToBaseUnit(other.getValue());
-
-        return Math.abs(thisInFeet - otherInFeet) < EPSILON;
+        return Math.abs(thisBase - otherBase) < EPSILON;
     }
 
     @Override

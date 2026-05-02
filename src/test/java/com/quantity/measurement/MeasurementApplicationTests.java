@@ -4,7 +4,9 @@ import com.quantity.measurement.enums.WeightUnit;
 import com.quantity.measurement.model.Quantity;
 import com.quantity.measurement.model.QuantityWeight;
 import com.quantity.measurement.model.QuantityLength;
+import com.quantity.measurement.enums.IMeasurable;
 import com.quantity.measurement.enums.LengthUnit;
+import com.quantity.measurement.enums.TemperatureUnit;
 import com.quantity.measurement.enums.VolumeUnit;
 
 import org.junit.jupiter.api.Test;
@@ -2394,6 +2396,315 @@ void testAddition_DifferentMeasurementTypes() {
     void testEquality_DifferentTypes() {
         assertFalse(new Quantity<>(1.0, LengthUnit.FEET)
                 .equals(new Quantity<>(1.0, WeightUnit.KILOGRAM)));
+    }
+    
+    // =========================================================================
+    // UC14 — Temperature Measurement & IMeasurable Refactoring
+    // =========================================================================
+ 
+    // ---- Equality: same unit ------------------------------------------------
+ 
+    @Test
+    void testTemperatureEquality_CelsiusToCelsius_SameValue() {
+        assertTrue(new Quantity<>(0.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(0.0, TemperatureUnit.CELSIUS)));
+    }
+ 
+    @Test
+    void testTemperatureEquality_FahrenheitToFahrenheit_SameValue() {
+        assertTrue(new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT)
+                .equals(new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT)));
+    }
+ 
+    @Test
+    void testTemperatureEquality_KelvinToKelvin_SameValue() {
+        assertTrue(new Quantity<>(273.15, TemperatureUnit.KELVIN)
+                .equals(new Quantity<>(273.15, TemperatureUnit.KELVIN)));
+    }
+ 
+    // ---- Equality: cross-unit -----------------------------------------------
+ 
+    @Test
+    void testTemperatureEquality_CelsiusToFahrenheit_0Celsius32Fahrenheit() {
+        assertTrue(new Quantity<>(0.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT)));
+    }
+ 
+    @Test
+    void testTemperatureEquality_CelsiusToFahrenheit_100Celsius212Fahrenheit() {
+        assertTrue(new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(212.0, TemperatureUnit.FAHRENHEIT)));
+    }
+ 
+    @Test
+    void testTemperatureEquality_CelsiusToKelvin_0Celsius() {
+        assertTrue(new Quantity<>(0.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(273.15, TemperatureUnit.KELVIN)));
+    }
+ 
+    @Test
+    void testTemperatureEquality_100CelsiusTo373_15Kelvin() {
+        assertTrue(new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(373.15, TemperatureUnit.KELVIN)));
+    }
+ 
+    @Test
+    void testTemperatureEquality_CelsiusToFahrenheit_Negative40Equal() {
+        // -40 is the unique intersection point: -40°C == -40°F
+        assertTrue(new Quantity<>(-40.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(-40.0, TemperatureUnit.FAHRENHEIT)));
+    }
+ 
+    @Test
+    void testTemperatureEquality_SymmetricProperty() {
+        Quantity<TemperatureUnit> c = new Quantity<>(100.0, TemperatureUnit.CELSIUS);
+        Quantity<TemperatureUnit> f = new Quantity<>(212.0, TemperatureUnit.FAHRENHEIT);
+        assertTrue(c.equals(f));
+        assertTrue(f.equals(c)); // symmetric
+    }
+ 
+    @Test
+    void testTemperatureEquality_ReflexiveProperty() {
+        Quantity<TemperatureUnit> q = new Quantity<>(25.0, TemperatureUnit.CELSIUS);
+        assertTrue(q.equals(q)); // reflexive
+    }
+ 
+    @Test
+    void testTemperatureEquality_DifferentValues() {
+        assertFalse(new Quantity<>(50.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(100.0, TemperatureUnit.CELSIUS)));
+    }
+ 
+    // ---- Conversion ---------------------------------------------------------
+ 
+    @Test
+    void testTemperatureConversion_CelsiusToFahrenheit_VariousValues() {
+        assertEquals(122.0,
+                new Quantity<>(50.0, TemperatureUnit.CELSIUS)
+                        .convertTo(TemperatureUnit.FAHRENHEIT).getValue(), EPSILON);
+        assertEquals(-4.0,
+                new Quantity<>(-20.0, TemperatureUnit.CELSIUS)
+                        .convertTo(TemperatureUnit.FAHRENHEIT).getValue(), EPSILON);
+    }
+ 
+    @Test
+    void testTemperatureConversion_FahrenheitToCelsius_VariousValues() {
+        assertEquals(0.0,
+                new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT)
+                        .convertTo(TemperatureUnit.CELSIUS).getValue(), EPSILON);
+        assertEquals(100.0,
+                new Quantity<>(212.0, TemperatureUnit.FAHRENHEIT)
+                        .convertTo(TemperatureUnit.CELSIUS).getValue(), EPSILON);
+    }
+ 
+    @Test
+    void testTemperatureConversion_CelsiusToKelvin() {
+        assertEquals(273.15,
+                new Quantity<>(0.0, TemperatureUnit.CELSIUS)
+                        .convertTo(TemperatureUnit.KELVIN).getValue(), EPSILON);
+    }
+ 
+    @Test
+    void testTemperatureConversion_KelvinToCelsius() {
+        assertEquals(0.0,
+                new Quantity<>(273.15, TemperatureUnit.KELVIN)
+                        .convertTo(TemperatureUnit.CELSIUS).getValue(), EPSILON);
+    }
+ 
+    @Test
+    void testTemperatureConversion_SameUnit() {
+        assertEquals(100.0,
+                new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+                        .convertTo(TemperatureUnit.CELSIUS).getValue(), EPSILON);
+    }
+ 
+    @Test
+    void testTemperatureConversion_ZeroValue() {
+        // 0°C -> 32°F (NOT 0) — proves the non-linear offset formula is used
+        assertEquals(32.0,
+                new Quantity<>(0.0, TemperatureUnit.CELSIUS)
+                        .convertTo(TemperatureUnit.FAHRENHEIT).getValue(), EPSILON);
+    }
+ 
+    @Test
+    void testTemperatureConversion_NegativeValues() {
+        assertEquals(-40.0,
+                new Quantity<>(-40.0, TemperatureUnit.CELSIUS)
+                        .convertTo(TemperatureUnit.FAHRENHEIT).getValue(), EPSILON);
+    }
+ 
+    @Test
+    void testTemperatureConversion_RoundTrip_PreservesValue() {
+        double original = 37.0; // human body temperature
+        double roundTripped = new Quantity<>(original, TemperatureUnit.CELSIUS)
+                .convertTo(TemperatureUnit.FAHRENHEIT)
+                .convertTo(TemperatureUnit.CELSIUS)
+                .getValue();
+        assertEquals(original, roundTripped, EPSILON);
+    }
+ 
+    // ---- Unsupported arithmetic operations ----------------------------------
+ 
+    @Test
+    void testTemperatureUnsupportedOperation_Add() {
+        assertThrows(UnsupportedOperationException.class, () ->
+                new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+                        .add(new Quantity<>(50.0, TemperatureUnit.CELSIUS)));
+    }
+ 
+    @Test
+    void testTemperatureUnsupportedOperation_Subtract() {
+        assertThrows(UnsupportedOperationException.class, () ->
+                new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+                        .subtract(new Quantity<>(50.0, TemperatureUnit.CELSIUS)));
+    }
+ 
+    @Test
+    void testTemperatureUnsupportedOperation_Divide() {
+        assertThrows(UnsupportedOperationException.class, () ->
+                new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+                        .divide(new Quantity<>(50.0, TemperatureUnit.CELSIUS)));
+    }
+ 
+    @Test
+    void testTemperatureUnsupportedOperation_ErrorMessage() {
+        UnsupportedOperationException ex = assertThrows(
+                UnsupportedOperationException.class, () ->
+                        new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+                                .add(new Quantity<>(50.0, TemperatureUnit.CELSIUS)));
+        assertNotNull(ex.getMessage());
+        assertFalse(ex.getMessage().isBlank());
+    }
+ 
+    // ---- Cross-category isolation -------------------------------------------
+ 
+    @Test
+    void testTemperatureVsLengthIncompatibility() {
+        assertFalse(new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(100.0, LengthUnit.FEET)));
+    }
+ 
+    @Test
+    void testTemperatureVsWeightIncompatibility() {
+        assertFalse(new Quantity<>(50.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(50.0, WeightUnit.KILOGRAM)));
+    }
+ 
+    @Test
+    void testTemperatureVsVolumeIncompatibility() {
+        assertFalse(new Quantity<>(25.0, TemperatureUnit.CELSIUS)
+                .equals(new Quantity<>(25.0, VolumeUnit.LITRE)));
+    }
+ 
+    // ---- supportsArithmetic() capability checks -----------------------------
+ 
+    @Test
+    void testOperationSupportMethods_TemperatureUnit_Addition() {
+        assertFalse(TemperatureUnit.CELSIUS.supportsArithmetic());
+        assertFalse(TemperatureUnit.FAHRENHEIT.supportsArithmetic());
+        assertFalse(TemperatureUnit.KELVIN.supportsArithmetic());
+    }
+ 
+    @Test
+    void testOperationSupportMethods_LengthUnit_Addition() {
+        assertTrue(LengthUnit.FEET.supportsArithmetic()); // inherited default
+    }
+ 
+    @Test
+    void testOperationSupportMethods_WeightUnit_Division() {
+        assertTrue(WeightUnit.KILOGRAM.supportsArithmetic()); // inherited default
+    }
+ 
+    // ---- Constructor / null validation --------------------------------------
+ 
+    @Test
+    void testTemperatureNullUnitValidation() {
+        // null unit -> NullPointerException from constructor
+        assertThrows(NullPointerException.class,
+                () -> new Quantity<>(100.0, (TemperatureUnit) null));
+    }
+ 
+    // ---- Interface / structural checks --------------------------------------
+ 
+    @Test
+    void testIMeasurableInterface_BackwardCompatible() {
+        // Existing enums unchanged — still support arithmetic
+        assertTrue(LengthUnit.FEET.supportsArithmetic());
+        assertTrue(WeightUnit.KILOGRAM.supportsArithmetic());
+        assertTrue(VolumeUnit.LITRE.supportsArithmetic());
+    }
+ 
+    @Test
+    void testTemperatureUnit_NonLinearConversion() {
+        // 0°C -> 32°F, NOT 0°F — proves offset formula, not multiplication
+        double result = new Quantity<>(0.0, TemperatureUnit.CELSIUS)
+                .convertTo(TemperatureUnit.FAHRENHEIT).getValue();
+        assertNotEquals(0.0, result, EPSILON);
+        assertEquals(32.0, result, EPSILON);
+    }
+ 
+    @Test
+    void testTemperatureUnit_AllConstants() {
+        TemperatureUnit[] units = TemperatureUnit.values();
+        assertEquals(3, units.length);
+        assertEquals(TemperatureUnit.CELSIUS,    units[0]);
+        assertEquals(TemperatureUnit.FAHRENHEIT, units[1]);
+        assertEquals(TemperatureUnit.KELVIN,     units[2]);
+    }
+ 
+    @Test
+    void testTemperatureDefaultMethodInheritance() {
+        // Non-temperature enums inherit default supportsArithmetic = true
+        assertTrue(LengthUnit.INCH.supportsArithmetic());
+        assertTrue(WeightUnit.GRAM.supportsArithmetic());
+        assertTrue(VolumeUnit.MILLILITRE.supportsArithmetic());
+    }
+ 
+    @Test
+    void testTemperatureValidateOperationSupport_Throws() {
+        assertThrows(UnsupportedOperationException.class,
+                () -> TemperatureUnit.CELSIUS.validateOperationSupport("ADD"));
+    }
+ 
+    @Test
+    void testTemperatureIntegrationWithGenericQuantity() {
+        // Quantity<TemperatureUnit> constructs, stores and converts correctly
+        Quantity<TemperatureUnit> q = new Quantity<>(100.0, TemperatureUnit.CELSIUS);
+        assertEquals(TemperatureUnit.CELSIUS, q.getUnit());
+        assertEquals(100.0, q.getValue(), EPSILON);
+        assertEquals(212.0,
+                q.convertTo(TemperatureUnit.FAHRENHEIT).getValue(), EPSILON);
+    }
+ 
+    @Test
+    void testTemperatureBackwardCompatibility_UC1_Through_UC13() {
+        // Spot-check representative UC1-UC13 operations still work correctly
+        assertEquals(new Quantity<>(2.0, LengthUnit.FEET),
+                new Quantity<>(1.0, LengthUnit.FEET)
+                        .add(new Quantity<>(12.0, LengthUnit.INCH)));
+ 
+        assertEquals(5.0,
+                new Quantity<>(10.0, LengthUnit.FEET)
+                        .divide(new Quantity<>(2.0, LengthUnit.FEET)), EPSILON);
+ 
+        assertEquals(new Quantity<>(9.5, LengthUnit.FEET),
+                new Quantity<>(10.0, LengthUnit.FEET)
+                        .subtract(new Quantity<>(6.0, LengthUnit.INCH)));
+    }
+ 
+    @Test
+    void testTemperatureConversionPrecision_Epsilon() {
+        // 50°C = 122°F within 1e-6
+        assertEquals(122.0,
+                new Quantity<>(50.0, TemperatureUnit.CELSIUS)
+                        .convertTo(TemperatureUnit.FAHRENHEIT).getValue(), 1e-6);
+    }
+ 
+    @Test
+    void testTemperatureEnumImplementsIMeasurable() {
+        assertTrue(TemperatureUnit.CELSIUS    instanceof IMeasurable);
+        assertTrue(TemperatureUnit.FAHRENHEIT instanceof IMeasurable);
+        assertTrue(TemperatureUnit.KELVIN     instanceof IMeasurable);
     }
 
 }

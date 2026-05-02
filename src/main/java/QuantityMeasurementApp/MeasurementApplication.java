@@ -69,6 +69,6 @@ public class MeasurementApplication {
 		System.out.println(q5.equals(q6) ? "Equal (true)" : "Not Equal (false)");
 	}
 
-
+    
 
     }

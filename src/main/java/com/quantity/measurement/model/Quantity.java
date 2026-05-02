@@ -25,17 +25,35 @@ public class Quantity<U extends IMeasurable> {
     }
 
     // ================= CONVERSION =================
+
+    /**
+     * UC1–UC13: linear conversion for Length / Weight / Volume.
+     * Kept unchanged for full backward compatibility.
+     */
     public Quantity<U> toConvert(U targetUnit) {
         if (targetUnit == null)
             throw new NullPointerException("Target unit cannot be null");
 
         double baseValue = unit.convertToBaseUnit(value);
         double converted = targetUnit.convertFromBaseUnit(baseValue);
-
         return new Quantity<>(converted, targetUnit);
     }
 
-    // ================= OPERATIONS ENUM =================
+    /**
+     * UC14: Universal conversion — works for ALL unit types including
+     * non-linear Temperature conversions (lambda offset formulas).
+     * For linear units the behaviour is identical to toConvert().
+     */
+    public Quantity<U> convertTo(U targetUnit) {
+        if (targetUnit == null)
+            throw new NullPointerException("Target unit cannot be null");
+
+        double baseValue = unit.convertToBaseUnit(value);
+        double converted = targetUnit.convertFromBaseUnit(baseValue);
+        return new Quantity<>(converted, targetUnit);
+    }
+
+    // ================= OPERATIONS ENUM (UC13) =================
     private enum ArithmeticOperation {
         ADD((a, b) -> a + b),
 
@@ -59,17 +77,12 @@ public class Quantity<U extends IMeasurable> {
     }
 
     // ================= GETTERS =================
-    public double getValue() {
-        return value;
-    }
+    public double getValue() { return value; }
+    public U      getUnit()  { return unit;  }
 
-    public U getUnit() {
-        return unit;
-    }
-
-    // ================= INTERNAL =================
-    private double base(U unit, double value) {
-        return unit.convertToBaseUnit(value);
+    // ================= INTERNAL HELPERS =================
+    private double base(U u, double v) {
+        return u.convertToBaseUnit(v);
     }
 
     private double operate(Quantity<U> other, ArithmeticOperation op) {
@@ -78,8 +91,11 @@ public class Quantity<U extends IMeasurable> {
         return op.apply(a, b);
     }
 
-    // Central validator used by "internal" paths (throws NPE for null)
-    private Quantity<U> validateAndCastNPE(Quantity<?> other) {
+    /**
+     * Validates that 'other' is non-null and same category as this.
+     * NPE for null; IAE for cross-category mismatch.
+     */
+    private Quantity<U> validateAndCast(Quantity<?> other) {
         if (other == null)
             throw new NullPointerException("Quantity must not be null");
 
@@ -88,84 +104,86 @@ public class Quantity<U extends IMeasurable> {
 
         @SuppressWarnings("unchecked")
         Quantity<U> compatible = (Quantity<U>) other;
-
         return compatible;
     }
 
-    // ================= OPERATIONS =================
+    // ================= PUBLIC OPERATIONS =================
+    //
+    // ORDERING RULE (UC14):
+    //   1. Null check FIRST         -> NullPointerException
+    //                                  (even for Temperature, null always = NPE)
+    //   2. Operation support check  -> UnsupportedOperationException
+    //                                  (Temperature blocks non-null operands here)
+    //   3. Category / cast check    -> IllegalArgumentException
 
     // -------- ADD --------
     public Quantity<U> add(Quantity<?> other) {
         if (other == null)
             throw new NullPointerException("Quantity must not be null");
+        this.unit.validateOperationSupport("ADD");
         return add(other, this.unit);
     }
 
     public Quantity<U> add(Quantity<?> other, U targetUnit) {
+        if (other == null)
+            throw new NullPointerException("Quantity must not be null");
         if (targetUnit == null)
             throw new NullPointerException("Target unit must not be null");
+        this.unit.validateOperationSupport("ADD");
 
-        Quantity<U> compatible = validateAndCastNPE(other);
-
+        Quantity<U> compatible = validateAndCast(other);
         double resultBase = operate(compatible, ArithmeticOperation.ADD);
-        double converted = targetUnit.convertFromBaseUnit(resultBase);
-
+        double converted  = targetUnit.convertFromBaseUnit(resultBase);
         return new Quantity<>(converted, targetUnit);
     }
 
     // -------- SUBTRACT --------
-    // Public entry: expects IllegalArgumentException on null (UC12)
     public Quantity<U> subtract(Quantity<?> other) {
         if (other == null)
             throw new NullPointerException("Quantity must not be null");
-        // Delegate without re-checking null → keeps behavior consistent
+        this.unit.validateOperationSupport("SUBTRACT");
         return subtractInternal(other, this.unit);
     }
 
-    // Overload: lets null flow into internal (for *_NullInput tests → NPE)
     public Quantity<U> subtract(Quantity<?> other, U targetUnit) {
+        if (other == null)
+            throw new NullPointerException("Quantity must not be null");
         if (targetUnit == null)
             throw new IllegalArgumentException("Target unit must not be null");
+        this.unit.validateOperationSupport("SUBTRACT");
         return subtractInternal(other, targetUnit);
     }
 
     private Quantity<U> subtractInternal(Quantity<?> other, U targetUnit) {
-        Quantity<U> compatible = validateAndCastNPE(other); // NPE here if null
-
+        Quantity<U> compatible = validateAndCast(other);
         double resultBase = operate(compatible, ArithmeticOperation.SUBTRACT);
-        double converted = targetUnit.convertFromBaseUnit(resultBase);
-
+        double converted  = targetUnit.convertFromBaseUnit(resultBase);
         return new Quantity<>(converted, targetUnit);
     }
 
     // -------- DIVIDE --------
-    // Public entry: expects IllegalArgumentException on null (UC12)
     public double divide(Quantity<?> other) {
         if (other == null)
             throw new NullPointerException("Quantity must not be null");
+        this.unit.validateOperationSupport("DIVIDE");
         return divideInternal(other);
     }
 
     private double divideInternal(Quantity<?> other) {
-        Quantity<U> compatible = validateAndCastNPE(other); // NPE here if null
+        Quantity<U> compatible = validateAndCast(other);
         return operate(compatible, ArithmeticOperation.DIVIDE);
     }
 
     // ================= EQUALS =================
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
+        if (this == obj) return true;
+        if (!(obj instanceof Quantity<?> other)) return false;
 
-        if (!(obj instanceof Quantity<?> other))
-            return false;
-
-        if (!this.unit.getClass().equals(other.unit.getClass()))
-            return false;
+        if (!this.unit.getClass().equals(other.unit.getClass())) return false;
 
         double a = this.unit.convertToBaseUnit(this.value);
         double b = other.unit.convertToBaseUnit(other.value);
-
         return Math.abs(a - b) < EPSILON;
     }
 

@@ -1,36 +1,30 @@
 package com.quantity.measurement.model;
 
-import com.quantity.measurement.enums.IMeasurable;
 import java.util.Objects;
+import java.util.function.DoubleBinaryOperator;
+
+import com.quantity.measurement.enums.IMeasurable;
 
 public class Quantity<U extends IMeasurable> {
 
-    private final double EPSILON = 1e-6;
+    private static final double EPSILON = 1e-6;
+
     private final double value;
     private final U unit;
 
-    // ===================== CONSTRUCTOR =====================
+    // ================= CONSTRUCTOR =================
     public Quantity(double value, U unit) {
         if (unit == null)
             throw new NullPointerException("Unit shouldn't be null");
 
-        if (Double.isNaN(value) || Double.isInfinite(value))
+        if (!Double.isFinite(value))
             throw new IllegalArgumentException("Invalid value");
 
         this.value = value;
         this.unit = unit;
     }
 
-    // ===================== GETTERS =====================
-    public double getValue() {
-        return value;
-    }
-
-    public U getUnit() {
-        return unit;
-    }
-
-    // ===================== CONVERSION =====================
+    // ================= CONVERSION =================
     public Quantity<U> toConvert(U targetUnit) {
         if (targetUnit == null)
             throw new NullPointerException("Target unit cannot be null");
@@ -41,102 +35,144 @@ public class Quantity<U extends IMeasurable> {
         return new Quantity<>(converted, targetUnit);
     }
 
-    // ===================== ADD =====================
-    public Quantity<U> add(Quantity<U> other) {
+    // ================= OPERATIONS ENUM =================
+    private enum ArithmeticOperation {
+        ADD((a, b) -> a + b),
+
+        SUBTRACT((a, b) -> a - b),
+
+        DIVIDE((a, b) -> {
+            if (Math.abs(b) < EPSILON)
+                throw new ArithmeticException("Division by zero");
+            return a / b;
+        });
+
+        private final DoubleBinaryOperator op;
+
+        ArithmeticOperation(DoubleBinaryOperator op) {
+            this.op = op;
+        }
+
+        double apply(double a, double b) {
+            return op.applyAsDouble(a, b);
+        }
+    }
+
+    // ================= GETTERS =================
+    public double getValue() {
+        return value;
+    }
+
+    public U getUnit() {
+        return unit;
+    }
+
+    // ================= INTERNAL =================
+    private double base(U unit, double value) {
+        return unit.convertToBaseUnit(value);
+    }
+
+    private double operate(Quantity<U> other, ArithmeticOperation op) {
+        double a = base(this.unit, this.value);
+        double b = base(other.unit, other.value);
+        return op.apply(a, b);
+    }
+
+    // Central validator used by "internal" paths (throws NPE for null)
+    private Quantity<U> validateAndCastNPE(Quantity<?> other) {
+        if (other == null)
+            throw new NullPointerException("Quantity must not be null");
+
+        if (!this.unit.getClass().equals(other.getUnit().getClass()))
+            throw new IllegalArgumentException("Different measurement types");
+
+        @SuppressWarnings("unchecked")
+        Quantity<U> compatible = (Quantity<U>) other;
+
+        return compatible;
+    }
+
+    // ================= OPERATIONS =================
+
+    // -------- ADD --------
+    public Quantity<U> add(Quantity<?> other) {
+        if (other == null)
+            throw new NullPointerException("Quantity must not be null");
         return add(other, this.unit);
     }
 
-    public Quantity<U> add(Quantity<U> other, U targetUnit) {
-        if (other == null || targetUnit == null)
-            throw new NullPointerException("Second quantity & targetUnit must not be null");
+    public Quantity<U> add(Quantity<?> other, U targetUnit) {
+        if (targetUnit == null)
+            throw new NullPointerException("Target unit must not be null");
 
-        if (!this.unit.getClass().equals(other.unit.getClass()))
-            throw new IllegalArgumentException("Cannot operate on different measurement categories");
+        Quantity<U> compatible = validateAndCastNPE(other);
 
-        if (!isValid(this.value) || !isValid(other.value))
-            throw new IllegalArgumentException("Invalid numeric values");
+        double resultBase = operate(compatible, ArithmeticOperation.ADD);
+        double converted = targetUnit.convertFromBaseUnit(resultBase);
 
-        double thisBase = this.unit.convertToBaseUnit(this.value);
-        double otherBase = other.unit.convertToBaseUnit(other.value);
-
-        double sumBase = thisBase + otherBase;
-        double result = targetUnit.convertFromBaseUnit(sumBase);
-
-        return new Quantity<>(result, targetUnit);
+        return new Quantity<>(converted, targetUnit);
     }
 
-    // ===================== SUBTRACT (UC12) =====================
-    public Quantity<U> subtract(Quantity<U> other) {
-        return subtract(other, this.unit);
-    }
-
-    public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
-        if (other == null || targetUnit == null)
-            throw new IllegalArgumentException("Null values not allowed");
-
-        if (!this.unit.getClass().equals(other.unit.getClass()))
-            throw new IllegalArgumentException("Cannot operate on different measurement categories");
-
-        if (!isValid(this.value) || !isValid(other.value))
-            throw new IllegalArgumentException("Invalid numeric values");
-
-        double thisBase = this.unit.convertToBaseUnit(this.value);
-        double otherBase = other.unit.convertToBaseUnit(other.value);
-
-        double resultBase = thisBase - otherBase;
-        double result = targetUnit.convertFromBaseUnit(resultBase);
-
-        return new Quantity<>(result, targetUnit);
-    }
-
-    // ===================== DIVIDE (UC12) =====================
-    public double divide(Quantity<U> other) {
+    // -------- SUBTRACT --------
+    // Public entry: expects IllegalArgumentException on null (UC12)
+    public Quantity<U> subtract(Quantity<?> other) {
         if (other == null)
-            throw new IllegalArgumentException("Null value not allowed");
-
-        if (!this.unit.getClass().equals(other.unit.getClass()))
-            throw new IllegalArgumentException("Cannot operate on different measurement categories");
-
-        if (!isValid(this.value) || !isValid(other.value))
-            throw new IllegalArgumentException("Invalid numeric values");
-
-        double thisBase = this.unit.convertToBaseUnit(this.value);
-        double otherBase = other.unit.convertToBaseUnit(other.value);
-
-        if (Math.abs(otherBase) < EPSILON)
-            throw new ArithmeticException("Cannot divide by zero");
-
-        return thisBase / otherBase;
+            throw new NullPointerException("Quantity must not be null");
+        // Delegate without re-checking null → keeps behavior consistent
+        return subtractInternal(other, this.unit);
     }
 
-    // ===================== VALIDATION =====================
-    private boolean isValid(double value) {
-        return !Double.isNaN(value) && !Double.isInfinite(value);
+    // Overload: lets null flow into internal (for *_NullInput tests → NPE)
+    public Quantity<U> subtract(Quantity<?> other, U targetUnit) {
+        if (targetUnit == null)
+            throw new IllegalArgumentException("Target unit must not be null");
+        return subtractInternal(other, targetUnit);
     }
 
-    // ===================== EQUALITY =====================
+    private Quantity<U> subtractInternal(Quantity<?> other, U targetUnit) {
+        Quantity<U> compatible = validateAndCastNPE(other); // NPE here if null
+
+        double resultBase = operate(compatible, ArithmeticOperation.SUBTRACT);
+        double converted = targetUnit.convertFromBaseUnit(resultBase);
+
+        return new Quantity<>(converted, targetUnit);
+    }
+
+    // -------- DIVIDE --------
+    // Public entry: expects IllegalArgumentException on null (UC12)
+    public double divide(Quantity<?> other) {
+        if (other == null)
+            throw new NullPointerException("Quantity must not be null");
+        return divideInternal(other);
+    }
+
+    private double divideInternal(Quantity<?> other) {
+        Quantity<U> compatible = validateAndCastNPE(other); // NPE here if null
+        return operate(compatible, ArithmeticOperation.DIVIDE);
+    }
+
+    // ================= EQUALS =================
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
 
-        if (obj == null || getClass() != obj.getClass())
+        if (!(obj instanceof Quantity<?> other))
             return false;
 
-        Quantity<?> other = (Quantity<?>) obj;
-
-        if (this.unit.getClass() != other.unit.getClass())
+        if (!this.unit.getClass().equals(other.unit.getClass()))
             return false;
 
-        double thisBase = this.unit.convertToBaseUnit(this.value);
-        double otherBase = other.unit.convertToBaseUnit(other.getValue());
+        double a = this.unit.convertToBaseUnit(this.value);
+        double b = other.unit.convertToBaseUnit(other.value);
 
-        return Math.abs(thisBase - otherBase) < EPSILON;
+        return Math.abs(a - b) < EPSILON;
     }
 
+    // ================= HASHCODE =================
     @Override
     public int hashCode() {
-        double base = unit.convertToBaseUnit(value);
-        return Objects.hash(Math.round(base / EPSILON));
+        double baseValue = unit.convertToBaseUnit(value);
+        return Objects.hash(Math.round(baseValue * 1e6));
     }
 }

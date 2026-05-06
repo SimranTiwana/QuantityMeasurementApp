@@ -1,7 +1,7 @@
 package com.quantity.measurement.model;
 
-import com.quantity.measurement.enums.IMeasurable;
-import com.quantity.measurement.enums.WeightUnit;
+import com.quantity.measurement.enumslmpl.WeightUnit;
+
 public class QuantityWeight {
 
     private final Quantity<WeightUnit> quantity;

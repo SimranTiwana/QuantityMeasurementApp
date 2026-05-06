@@ -3,7 +3,7 @@ package QuantityMeasurementApp;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.quantity.measurement.enums.LengthUnit;
+import com.quantity.measurement.enumslmpl.LengthUnit;
 import com.quantity.measurement.model.QuantityLength;
 
 //@SpringBootApplication

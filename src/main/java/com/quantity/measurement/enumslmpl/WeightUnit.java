@@ -1,4 +1,6 @@
-package com.quantity.measurement.enums;
+package com.quantity.measurement.enumslmpl;
+
+import com.quantity.measurement.enums.IMeasurable;
 
 public enum WeightUnit implements IMeasurable {
 
@@ -26,10 +28,6 @@ public enum WeightUnit implements IMeasurable {
     public double convertFromBaseUnit(double value) {
         validate(value);
         return value / toKilogramFactor;
-    }
-    @Override
-    public String getUnitName() {
-        return this.name();
     }
 
     private void validate(double value) {

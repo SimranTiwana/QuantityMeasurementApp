@@ -1,4 +1,6 @@
-package com.quantity.measurement.enums;
+package com.quantity.measurement.enumslmpl;
+
+import com.quantity.measurement.enums.IMeasurable;
 
 public enum LengthUnit implements IMeasurable {
 
@@ -28,11 +30,6 @@ public enum LengthUnit implements IMeasurable {
     public double convertFromBaseUnit(double value) {
         validate(value);
         return value / toFeetFactor;
-    }
-
-    @Override
-    public String getUnitName() {
-       return this.name();
     }
 
     private void validate(double value) {

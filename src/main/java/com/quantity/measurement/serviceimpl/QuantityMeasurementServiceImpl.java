@@ -145,7 +145,6 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
         }
     }
 
-    @SuppressWarnings("rawtypes")
     private Quantity<?> buildQuantity(QuantityDTO dto) {
         IMeasurable unit = resolveUnit(dto.getUnitName(), dto.getMeasurementType());
         return new Quantity<>(dto.getValue(), unit);

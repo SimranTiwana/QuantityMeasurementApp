@@ -15,13 +15,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.quantity.measurement.entity.Entity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.quantity.measurement.repositoryImpl.DatabaseRepository;
-import com.quantity.measurement.repositoryImpl.CacheRepository;
+import com.quantity.measurement.dump.repositoryImpl.DatabaseRepository;
+import com.quantity.measurement.dump.repositoryImpl.CacheRepository;
 import com.quantity.measurement.config.ApplicationConfig;
-import com.quantity.measurement.database.ConnectionPool;
+import com.quantity.measurement.dump.database.ConnectionPool;
+import com.quantity.measurement.model.QuantityMeasurementEntity;
 import com.quantity.measurement.repository.Repository;
 import com.quantity.measurement.serviceImpl.ServiceImpl;
 
@@ -51,7 +51,7 @@ public class DatabaseIntegrationTest {
 
         assertNotNull(ConnectionPool.class);
         assertNotNull(ServiceImpl.class);
-        assertNotNull(Entity.class);
+        assertNotNull(QuantityMeasurementEntity.class);
         assertNotNull(Repository.class);
     }
 
@@ -128,7 +128,7 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_SaveMeasurement() {
 
-        Entity entity = new Entity();
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
 
         entity.setOperand1Value(10);
         entity.setOperand1Unit("FEET");
@@ -148,7 +148,7 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_GetAllMeasurements() {
 
-        Entity entity = new Entity();
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
 
         entity.setOperand1Value(5);
         entity.setOperand1Unit("KG");
@@ -161,7 +161,7 @@ public class DatabaseIntegrationTest {
 
         repository.save(entity);
 
-        List<Entity> result = repository.getAllMeasurements();
+        List<QuantityMeasurementEntity> result = repository.getAllMeasurements();
         assertFalse(result.isEmpty());
     }
 
@@ -169,7 +169,7 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_DeleteAllMeasurements() {
 
-        Entity entity = new Entity();
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
         entity.setOperand1Value(1);
         entity.setOperand1Unit("LITER");
         entity.setOperand2Value(1);
@@ -190,7 +190,7 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_TotalCount() {
 
-        Entity entity = new Entity();
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
 
         entity.setOperand1Value(2);
         entity.setOperand1Unit("FEET");
@@ -210,8 +210,8 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_FindByOperationType() {
 
-        Entity entity =
-                new Entity();
+        QuantityMeasurementEntity entity =
+                new QuantityMeasurementEntity();
 
         entity.setOperand1Value(1);
         entity.setOperand1Unit("KG");
@@ -224,7 +224,7 @@ public class DatabaseIntegrationTest {
 
         repository.save(entity);
 
-        List<Entity> result =
+        List<QuantityMeasurementEntity> result =
                 repository.getMeasurementsByOperation("ADD");
 
         assertEquals(1, result.size());
@@ -234,8 +234,8 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_FindByMeasurementType() {
 
-        Entity entity =
-                new Entity();
+        QuantityMeasurementEntity entity =
+                new QuantityMeasurementEntity();
 
         entity.setOperand1Value(1);
         entity.setOperand1Unit("CELSIUS");
@@ -248,7 +248,7 @@ public class DatabaseIntegrationTest {
 
         repository.save(entity);
 
-        List<Entity> result =
+        List<QuantityMeasurementEntity> result =
                 repository.getMeasurementsByType(
                         "TEMPERATURE"
                 );
@@ -280,8 +280,8 @@ public class DatabaseIntegrationTest {
 
         for (int i = 0; i < 5; i++) {
 
-            Entity entity =
-                    new Entity();
+            QuantityMeasurementEntity entity =
+                    new QuantityMeasurementEntity();
 
             entity.setOperand1Value(i);
             entity.setOperand1Unit("FEET");
@@ -302,7 +302,7 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_NonExistingOperationType() {
 
-        List<Entity> result =
+        List<QuantityMeasurementEntity> result =
                 repository.getMeasurementsByOperation(
                         "INVALID"
                 );
@@ -314,7 +314,7 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_NonExistingMeasurementType() {
 
-        List<Entity> result =
+        List<QuantityMeasurementEntity> result =
                 repository.getMeasurementsByType(
                         "INVALID"
                 );
@@ -369,8 +369,8 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_CountAfterDelete() {
 
-        Entity entity =
-                new Entity();
+        QuantityMeasurementEntity entity =
+                new QuantityMeasurementEntity();
 
         entity.setOperand1Value(10);
         entity.setOperand1Unit("FEET");
@@ -403,8 +403,8 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_SaveDifferentMeasurementTypes() {
 
-        Entity entity1 =
-                new Entity();
+        QuantityMeasurementEntity entity1 =
+                new QuantityMeasurementEntity();
 
         entity1.setOperand1Value(1);
         entity1.setOperand1Unit("FEET");
@@ -417,8 +417,8 @@ public class DatabaseIntegrationTest {
 
         repository.save(entity1);
 
-        Entity entity2 =
-                new Entity();
+        QuantityMeasurementEntity entity2 =
+                new QuantityMeasurementEntity();
 
         entity2.setOperand1Value(1);
         entity2.setOperand1Unit("KG");
@@ -478,8 +478,8 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_SaveAndRetrieveValues() {
 
-        Entity entity =
-                new Entity();
+        QuantityMeasurementEntity entity =
+                new QuantityMeasurementEntity();
 
         entity.setOperand1Value(100);
         entity.setOperand1Unit("ML");
@@ -492,7 +492,7 @@ public class DatabaseIntegrationTest {
 
         repository.save(entity);
 
-        Entity saved =
+        QuantityMeasurementEntity saved =
                 repository.getAllMeasurements().get(0);
 
         assertEquals(
@@ -535,8 +535,8 @@ public class DatabaseIntegrationTest {
     @Test
     void testEntityInstance_NotNull() {
 
-        Entity entity =
-                new Entity();
+        QuantityMeasurementEntity entity =
+                new QuantityMeasurementEntity();
 
         assertNotNull(entity);
     }
@@ -545,8 +545,8 @@ public class DatabaseIntegrationTest {
     @Test
     void testDatabaseRepository_InsertAndCount() {
 
-        Entity entity =
-                new Entity();
+        QuantityMeasurementEntity entity =
+                new QuantityMeasurementEntity();
 
         entity.setOperand1Value(50);
         entity.setOperand1Unit("GRAM");

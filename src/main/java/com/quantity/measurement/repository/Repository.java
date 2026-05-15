@@ -1,24 +1,23 @@
 package com.quantity.measurement.repository;
 
-import com.quantity.measurement.entity.Entity;
 import java.util.List;
 
-import com.quantity.measurement.entity.Entity;
+import com.quantity.measurement.model.QuantityMeasurementEntity;
 
 public interface Repository{
 
     // Save measurement
-    void save(Entity entity);
+    void save(QuantityMeasurementEntity entity);
 
     // Get all measurements
-    List<Entity> getAllMeasurements();
+    List<QuantityMeasurementEntity> getAllMeasurements();
 
     // Get by operation type
-    List<Entity>
+    List<QuantityMeasurementEntity>
     getMeasurementsByOperation(String operationType);
 
     // Get by measurement type
-    List<Entity>
+    List<QuantityMeasurementEntity>
     getMeasurementsByType(String measurementType);
 
     // Delete all records

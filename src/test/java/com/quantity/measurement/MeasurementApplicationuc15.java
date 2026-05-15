@@ -3,11 +3,12 @@ package com.quantity.measurement;
 
 import com.quantity.measurement.controller.Controller;
 import com.quantity.measurement.dto.QuantityDTO;
-import com.quantity.measurement.entity.Entity;
-import com.quantity.measurement.repositoryImpl.CacheRepository;
+import com.quantity.measurement.model.QuantityMeasurementEntity;
+import com.quantity.measurement.dump.repositoryImpl.CacheRepository;
 import com.quantity.measurement.repository.Repository;
 import com.quantity.measurement.service.Service;
 import com.quantity.measurement.serviceImpl.ServiceImpl;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +31,7 @@ class MeasurementApplicationTestsUC15 {
 
     @Test
     void testQuantityEntity_Properties() {
-        Entity entity = new Entity();
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
         entity.setOperationType("CONVERT");
         entity.setOperand1Value(1.0);
         entity.setOperand1Unit("FEET");
@@ -46,7 +47,7 @@ class MeasurementApplicationTestsUC15 {
 
     @Test
     void testQuantityEntity_BinaryOperandProperties() {
-        Entity entity = new Entity();
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
         entity.setOperationType("ADD");
         entity.setOperand1Value(1.0);
         entity.setOperand1Unit("FEET");
@@ -66,7 +67,7 @@ class MeasurementApplicationTestsUC15 {
 
     @Test
     void testQuantityEntity_MeasurementType() {
-        Entity entity = new Entity();
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
         entity.setMeasurementType("LENGTH");
         assertEquals("LENGTH", entity.getMeasurementType());
     }
@@ -295,7 +296,7 @@ class MeasurementApplicationTestsUC15 {
 
     @Test
     void testEntity_IdProperty() {
-        Entity entity = new Entity();
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
         entity.setId(100L);
         assertEquals(100L, entity.getId());
     }

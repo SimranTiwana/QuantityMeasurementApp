@@ -1,6 +1,6 @@
-package com.quantity.measurement.repositoryImpl;
+package com.quantity.measurement.dump.repositoryImpl;
 
-import com.quantity.measurement.entity.Entity;
+import com.quantity.measurement.model.QuantityMeasurementEntity;
 import com.quantity.measurement.repository.Repository;
 
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ public class CacheRepository implements Repository {
 
     private static CacheRepository instance;
 
-    private final List<Entity> cache = new ArrayList<>();
+    private final List<QuantityMeasurementEntity> cache = new ArrayList<>();
 
     private CacheRepository() {
     }
@@ -23,22 +23,22 @@ public class CacheRepository implements Repository {
     }
 
     @Override
-    public void save(Entity entity) {
+    public void save(QuantityMeasurementEntity entity) {
         cache.add(entity);
     }
 
     @Override
-    public List<Entity> getAllMeasurements() {
+    public List<QuantityMeasurementEntity> getAllMeasurements() {
         return List.of();
     }
 
     @Override
-    public List<Entity> getMeasurementsByOperation(String operationType) {
+    public List<QuantityMeasurementEntity> getMeasurementsByOperation(String operationType) {
         return List.of();
     }
 
     @Override
-    public List<Entity> getMeasurementsByType(String measurementType) {
+    public List<QuantityMeasurementEntity> getMeasurementsByType(String measurementType) {
         return List.of();
     }
 

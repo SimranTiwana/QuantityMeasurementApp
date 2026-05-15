@@ -1,4 +1,4 @@
-package com.quantity.measurement.database;
+package com.quantity.measurement.dump.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

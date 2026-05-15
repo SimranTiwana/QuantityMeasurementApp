@@ -1,4 +1,4 @@
-package com.quantity.measurement.repositoryImpl;
+package com.quantity.measurement.dump.repositoryImpl;
 
 import java.lang.annotation.Annotation;
 import java.sql.Connection;
@@ -12,8 +12,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.quantity.measurement.entity.Entity;
 import com.quantity.measurement.exception.DatabaseException;
+import com.quantity.measurement.model.QuantityMeasurementEntity;
 import com.quantity.measurement.repository.Repository;
 
 /**
@@ -99,7 +99,7 @@ public class DatabaseRepository implements Repository {
      * Save entity into database.
      */
     @Override
-    public void save(Entity entity) {
+    public void save(QuantityMeasurementEntity entity) {
 
         String sql = """
                 INSERT INTO quantity_measurement_entity (
@@ -181,12 +181,12 @@ public class DatabaseRepository implements Repository {
      * Get all measurements.
      */
     @Override
-    public List<Entity> getAllMeasurements() {
+    public List<QuantityMeasurementEntity> getAllMeasurements() {
 
         String sql =
                 "SELECT * FROM quantity_measurement_entity";
 
-        List<Entity> measurements =
+        List<QuantityMeasurementEntity> measurements =
                 new ArrayList<>();
 
         try (
@@ -230,8 +230,7 @@ public class DatabaseRepository implements Repository {
      * Get measurements by operation type.
      */
     @Override
-    public List<Entity>
-    getMeasurementsByOperation(String operationType) {
+    public List<QuantityMeasurementEntity> getMeasurementsByOperation(String operationType) {
 
         String sql = """
                 SELECT *
@@ -239,7 +238,7 @@ public class DatabaseRepository implements Repository {
                 WHERE operation_type = ?
                 """;
 
-        List<Entity> measurements =
+        List<QuantityMeasurementEntity> measurements =
                 new ArrayList<>();
 
         try (
@@ -291,8 +290,7 @@ public class DatabaseRepository implements Repository {
      * Get measurements by measurement type.
      */
     @Override
-    public List<Entity>
-    getMeasurementsByType(String measurementType) {
+    public List<QuantityMeasurementEntity> getMeasurementsByType(String measurementType) {
 
         String sql = """
                 SELECT *
@@ -300,7 +298,7 @@ public class DatabaseRepository implements Repository {
                 WHERE measurement_type = ?
                 """;
 
-        List<Entity> measurements =
+        List<QuantityMeasurementEntity> measurements =
                 new ArrayList<>();
 
         try (
@@ -427,12 +425,12 @@ public class DatabaseRepository implements Repository {
     /**
      * Map ResultSet to Entity.
      */
-    private Entity
+    private QuantityMeasurementEntity
     mapResultSet(ResultSet resultSet)
             throws SQLException {
 
-        Entity entity =
-                new Entity();
+        QuantityMeasurementEntity entity =
+                new QuantityMeasurementEntity();
 
         entity.setId(
                 resultSet.getLong("id")
@@ -472,5 +470,7 @@ public class DatabaseRepository implements Repository {
 
         return entity;
     }
+
+   
 
 }

@@ -1,4 +1,4 @@
-package com.quantity.measurement.enumslmpl;
+package com.quantity.measurement.enumsImpl;
 import com.quantity.measurement.enums.IMeasurable;
 import java.util.function.Function;
 

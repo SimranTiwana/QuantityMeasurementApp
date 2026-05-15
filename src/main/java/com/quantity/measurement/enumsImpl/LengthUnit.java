@@ -1,34 +1,35 @@
-package com.quantity.measurement.enumslmpl;
+package com.quantity.measurement.enumsImpl;
 
 import com.quantity.measurement.enums.IMeasurable;
 
-public enum VolumeUnit implements IMeasurable {
+public enum LengthUnit implements IMeasurable {
 
-    LITRE(1.0),
-    MILLILITRE(0.001),
-    GALLON(3.78541);
+    FEET(1.0),
+    INCH(1.0 / 12),
+    YARDS(3.0),
+    CENTIMETERS(1.0 / 30.48);
 
-    private final double toLitreFactor;
+    private final double toFeetFactor;
 
-    VolumeUnit(double toLitreFactor) {
-        this.toLitreFactor = toLitreFactor;
+    LengthUnit(double toFeetFactor) {
+        this.toFeetFactor = toFeetFactor;
     }
 
     @Override
     public double getConversionFactor() {
-        return toLitreFactor;
+        return toFeetFactor;
     }
 
     @Override
     public double convertToBaseUnit(double value) {
         validate(value);
-        return value * toLitreFactor;
+        return value * toFeetFactor;
     }
 
     @Override
     public double convertFromBaseUnit(double value) {
         validate(value);
-        return value / toLitreFactor;
+        return value / toFeetFactor;
     }
 
     private void validate(double value) {

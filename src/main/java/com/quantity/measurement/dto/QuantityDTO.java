@@ -1,47 +1,71 @@
 package com.quantity.measurement.dto;
 
-import com.quantity.measurement.enumsImpl.WeightUnit;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+// =============================================================
+// UC17 Step 5B – QuantityDTO with validation
+// =============================================================
+// Fixes applied over the original plain POJO:
+//   1. Added @Data, @NoArgsConstructor, @AllArgsConstructor
+//      (Lombok – eliminates manual getters / setters)
+//   2. Added @NotNull on value
+//   3. Added @NotEmpty on unit and measurementType
+// =============================================================
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 
 public class QuantityDTO {
 
-    private double value;
+    // =========================================================
+    // VALUE
+    // =========================================================
+
+    @NotNull(message = "Value cannot be null")
+
+    private Double value;
+
+    // =========================================================
+    // UNIT
+    // =========================================================
+
+    @NotEmpty(message = "Unit cannot be empty")
+
     private String unit;
+
+    // =========================================================
+    // MEASUREMENT TYPE
+    // =========================================================
+
+    @NotEmpty(message = "Measurement type cannot be empty")
+
     private String measurementType;
+
+    // =========================================================
+    // ERROR TRACKING (not validated – set internally)
+    // =========================================================
+
     private boolean error;
+
     private String errorMessage;
 
-    public QuantityDTO(double value, String unit, String measurementType) {
-        this.value = value;
-        this.unit = unit;
+    // =========================================================
+    // CONVENIENCE CONSTRUCTOR (no error fields)
+    // =========================================================
+
+    public QuantityDTO(
+            double value,
+            String unit,
+            String measurementType
+    ) {
+        this.value           = value;
+        this.unit            = unit;
         this.measurementType = measurementType;
-    }
-
-    public QuantityDTO(boolean error, String errorMessage) {
-        this.error = error;
-        this.errorMessage = errorMessage;
-    }
-
-    // public QuantityDTO(double d, WeightUnit kilogram, double e, WeightUnit gram)
-    // {
-    // }
-
-    public double getValue() {
-        return value;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public String getMeasurementType() {
-        return measurementType;
-    }
-
-    public boolean isError() {
-        return error;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
     }
 }
